@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "pingdombot"
+version = "0.1.0"
+description = "Matrix bot for talking to pingdom"
+authors = ["Alex Kelly <alex.kelly@franklin.edu>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.27.1"
+rich = "^11.0.0"
+conf = "^0.4.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
