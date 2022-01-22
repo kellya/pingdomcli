@@ -1,18 +1,20 @@
 """main interface for the pingdombot"""
+import sys
 import requests
 import click
 import yaml
 from rich.table import Table
 from rich.console import Console
 
+__version__ = "0.1.0"
+
 def get_config(configfile):
-    """get the config file"""
+    """read a yaml config file and return a dict"""
     with open(configfile, 'r', encoding="utf-8")  as f:
         config = yaml.safe_load(f)
     return config
 
-__version__ = "0.1.0"
-@click.command()
+@click.group(invoke_without_command=True)
 @click.version_option(__version__, help='Show the version number and exit.')
 @click.option('--config', '-c', default='conf.yaml', type=click.Path(), help='config file to use')
 @click.option(
@@ -20,12 +22,28 @@ __version__ = "0.1.0"
     default=['up','down', 'paused'],
     multiple=True, help='The statuses to show'
 )
-def main(config,show):
+@click.pass_context
+def main(ctx,config,show):
+    """main entry to the pingdombot"""
+    if ctx.invoked_subcommand is None:
+        ctx.invoke(status, config=config, show=show)
+        sys.exit(0)
+
+@main.command()
+@click.option('--config', '-c', default='conf.yaml', type=click.Path(), help='config file to use')
+@click.option(
+    '--show', '-s',
+    default=['up','down', 'paused'],
+    multiple=True, help='The statuses to show'
+)
+@click.pass_context
+def status(ctx, config, show):
     """get the latest pingdom status"""
+
+    conf = get_config(config)
 
     # initialize rich console
     console = Console()
-    conf = get_config(config)
 
     # create a wait spinner while we get data from pingdom api
     with console.status("Getting pingdom status...", spinner="point"):
@@ -56,6 +74,9 @@ def main(config,show):
     else:
         console.print("No hosts match your criteria")
 
+@main.command()
+def echo():
+    print("echo")
 
 if __name__ == "__main__":
     main()
