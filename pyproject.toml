@@ -8,12 +8,13 @@ authors = ["Alex Kelly <alex.kelly@franklin.edu>"]
 python = "^3.10"
 requests = "^2.27.1"
 rich = "^11.0.0"
-conf = "^0.4.1"
 PyYAML = "^6.0"
+click = "^8.0.3"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.12.2"
 coverage = "^6.2"
+black = "^21.12b0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
