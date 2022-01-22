@@ -49,6 +49,14 @@ def status(ctx, config, show):
     with console.status("Getting pingdom status...", spinner="point"):
         response = requests.get(
             conf["BASE_URL"] + "/checks", auth=(conf["API_KEY"], ""))
+        if response.status_code != 200:
+            console.print(
+                "[red]Error[/red] obtaining status. "
+                "Check your [yellow]API_KEY[/yellow] setting in "
+                "[bold]{config}[/bold]"
+            )
+            sys.exit(1)
+
 
     # create a rich table to display the data
     table = Table(title="Pingdom Checks")
@@ -67,7 +75,10 @@ def status(ctx, config, show):
         elif check["status"] == "paused" and "paused" in show:
             count += 1
             table.add_row(check["name"], "[yellow]Paused[/yellow]", str(check["lastresponsetime"]))
-#        table.add_row(check["name"], status, str(check["lastresponsetime"]))
+        else:
+            # if there is another status, output it
+            count += 1
+            table.add_row(check["name"], "[blue]?[/blue]", str(check["lastresponsetime"]))
 
     if not count == 0:
         console.print(table)
@@ -75,8 +86,40 @@ def status(ctx, config, show):
         console.print("No hosts match your criteria")
 
 @main.command()
-def echo():
-    print("echo")
-
+@click.option('--config', '-c', default='conf.yaml', type=click.Path(), help='config file to use')
+@click.option(
+    '--type', '-t', 'type_',
+    default='http',
+    type=click.Choice(['http']),
+    prompt=True,
+    help='type of check to add'
+)
+@click.option('--name', '-n', default='', prompt=True, help='name of the check')
+@click.option('--url', '-u', default='', prompt=True, help='url of the check')
+@click.option(
+    '--integration', '-i',
+    default='',
+    prompt=True,
+    help='Comma separated list of integration IDs'
+)
+def add(config, type_, name, url, integration):
+    """add a new check to pingdom"""
+    conf = get_config(config)
+    console = Console()
+    integrations = integration.split(',')
+    response = requests.post(
+        conf["BASE_URL"] + "/checks",
+        auth=(conf["API_KEY"], ""),
+        data={
+            "name": name,
+            "host": url,
+            "type": type_,
+            "integrationids": integrations
+        }
+    )
+    if response.status_code == 200:
+        console.print(f"[green]Successfully added {name}[/green]")
+    else:
+        console.print(f"[red]Error adding check[/red].\n{response.json()['error']}")
 if __name__ == "__main__":
     main()
