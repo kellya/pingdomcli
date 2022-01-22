@@ -121,5 +121,44 @@ def add(config, type_, name, url, integration):
         console.print(f"[green]Successfully added {name}[/green]")
     else:
         console.print(f"[red]Error adding check[/red].\n{response.json()['error']}")
+
+@main.command()
+@click.option('--config', '-c', default='conf.yaml', type=click.Path(), help='config file to use')
+def list(config):
+    """list all of the checks in pingdom"""
+    conf = get_config(config)
+    console = Console()
+    response = requests.get(
+        conf["BASE_URL"] + "/checks", auth=(conf["API_KEY"], ""))
+    if response.status_code != 200:
+        console.print(
+            "[red]Error[/red] obtaining status. "
+            "Check your [yellow]API_KEY[/yellow] setting in "
+            "[bold]{config}[/bold]"
+        )
+        sys.exit(1)
+
+    # create a rich table to display the data
+    table = Table(title="Pingdom Checks")
+    table.add_column("Name", justify="left")
+    table.add_column("URL", justify="center")
+    table.add_column("ID", justify="center")
+    # loop through all of the checks and add them to the table
+    with console.status("Generating list...", spinner="point"):
+        for check in response.json()["checks"]:
+            url = requests.get(
+                conf["BASE_URL"] + "/checks/" + str(check["id"]),
+                auth=(conf["API_KEY"], "")
+            )
+            try:
+                path=url.json()['check']['type']['http']['url']
+                url = f"{check['hostname']}{path}"
+            except KeyError:
+                url='N/A'
+            table.add_row(check["name"], url,str(check["id"]))
+
+    console.print(table)
+
+
 if __name__ == "__main__":
     main()
