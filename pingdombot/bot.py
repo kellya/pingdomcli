@@ -10,7 +10,7 @@ __version__ = "0.1.0"
 
 def get_config(configfile):
     """read a yaml config file and return a dict"""
-    with open(configfile, 'r', encoding="utf-8")  as f:
+    with open(configfile, 'r', encoding="utf-8")  as f: # pylint: disable=invalid-name
         config = yaml.safe_load(f)
     return config
 
@@ -37,7 +37,7 @@ def main(ctx,config,show):
     multiple=True, help='The statuses to show'
 )
 @click.pass_context
-def status(ctx, config, show):
+def status(ctx, config, show): # pylint: disable=unused-argument
     """get the latest pingdom status"""
 
     conf = get_config(config)
@@ -122,9 +122,9 @@ def add(config, type_, name, url, integration):
     else:
         console.print(f"[red]Error adding check[/red].\n{response.json()['error']}")
 
-@main.command()
+@main.command(name='list')
 @click.option('--config', '-c', default='conf.yaml', type=click.Path(), help='config file to use')
-def list(config):
+def list_checks(config):
     """list all of the checks in pingdom"""
     conf = get_config(config)
     console = Console()
@@ -158,6 +158,36 @@ def list(config):
             table.add_row(check["name"], url,str(check["id"]))
 
     console.print(table)
+
+@main.command(name="del")
+@click.option('--config', '-c', default='conf.yaml', type=click.Path(), help='config file to use')
+@click.option('--id', '-i', 'id_', multiple=True, help='id of the check to delete')
+def del_check(config, id_):
+    """delete a check from pingdom"""
+    conf = get_config(config)
+    console = Console()
+    if len(id_) == 1 and ',' in id_[0]:
+        ids = id_[0]
+    elif len(id_) == 1:
+        ids = id_[0]
+    elif len(id_) > 1:
+        ids = ','.join(id_)
+    else:
+        console.print("[red]Error[/red] no check id specified")
+        sys.exit(1)
+
+    response = requests.delete(
+        conf["BASE_URL"] + "/checks/" + ids,
+        auth=(conf["API_KEY"], ""),
+        data={
+            "delcheckids": ids
+        }
+    )
+    if response.status_code == 200:
+        console.print(f"[green]Successfully deleted {ids}[/green]")
+    else:
+        console.print(f"[red]Error deleting check[/red].\n{response.json()['error']}")
+
 
 
 if __name__ == "__main__":
