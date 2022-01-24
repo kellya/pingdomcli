@@ -57,7 +57,7 @@ def status(ctx, config, show):  # pylint: disable=unused-argument
     console = Console()
 
     # create a wait spinner while we get data from pingdom api
-    with console.status(f"Getting pingdom status...", spinner="point"):
+    with console.status("Getting pingdom status...", spinner="point"):
         response = requests.get(
             conf["BASE_URL"] + "/checks", auth=(conf["API_KEY"], "")
         )
@@ -147,7 +147,12 @@ def add(config, type_, name, url, integration):
 @click.option(
     "--config", "-c", default="conf.yaml", type=click.Path(), help="config file to use"
 )
-def list_checks(config):
+@click.option(
+    "--url/--nourl",
+    default=False,
+    help="show url of the check",
+)
+def list_checks(config, url):
     """list all of the checks in pingdom"""
     conf = get_config(config)
     console = Console()
@@ -163,21 +168,33 @@ def list_checks(config):
     # create a rich table to display the data
     table = Table(title="Pingdom Checks")
     table.add_column("Name", justify="left")
-    table.add_column("URL", justify="center")
+    if url:
+        table.add_column("URL", justify="center")
     table.add_column("ID", justify="center")
+    if url:
+        url_notice = (
+            "\n[yellow]Note: URL generation takes a while"
+            " and is only present for http type checks."
+            ' other types will show "N/A"[/yellow]'
+        )
+    else:
+        url_notice = ""
     # loop through all of the checks and add them to the table
-    with console.status("Generating list...", spinner="point"):
+    with console.status(f"Generating list...{url_notice}", spinner="point"):
         for check in response.json()["checks"]:
-            url = requests.get(
-                conf["BASE_URL"] + "/checks/" + str(check["id"]),
-                auth=(conf["API_KEY"], ""),
-            )
-            try:
-                path = url.json()["check"]["type"]["http"]["url"]
-                url = f"{check['hostname']}{path}"
-            except KeyError:
-                url = "N/A"
-            table.add_row(check["name"], url, str(check["id"]))
+            if url:
+                url = requests.get(
+                    conf["BASE_URL"] + "/checks/" + str(check["id"]),
+                    auth=(conf["API_KEY"], ""),
+                )
+                try:
+                    path = url.json()["check"]["type"]["http"]["url"]
+                    url = f"{check['hostname']}{path}"
+                except KeyError:
+                    url = "N/A"
+                table.add_row(check["name"], url, str(check["id"]))
+            else:
+                table.add_row(check["name"], str(check["id"]))
 
     console.print(table)
 
