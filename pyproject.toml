@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pingdombot"
-version = "0.1.0"
+version = "0.2.0"
 description = "Matrix bot for talking to pingdom"
 authors = ["Alex Kelly <alex.kelly@franklin.edu>"]
 
@@ -19,3 +19,8 @@ black = "^21.12b0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.semantic_release]
+version_variable = [
+    "pyproject.toml:version",
+]
