@@ -24,7 +24,7 @@ def get_config(configfile):
 @click.option(
     "--show",
     "-s",
-    default=["up", "down", "paused"],
+    default=[],
     multiple=True,
     help="The statuses to show",
 )
@@ -43,7 +43,7 @@ def main(ctx, config, show):
 @click.option(
     "--show",
     "-s",
-    default=["up", "down", "paused"],
+    default=[],
     multiple=True,
     help="The statuses to show",
 )
@@ -55,6 +55,11 @@ def status(ctx, config, show):  # pylint: disable=unused-argument
 
     # initialize rich console
     console = Console()
+    if len(show) == 0:
+        try:
+            show = conf["show"]
+        except KeyError:
+            show = ["up", "down", "paused"]
 
     # create a wait spinner while we get data from pingdom api
     with console.status("Getting pingdom status...", spinner="point"):
@@ -91,12 +96,6 @@ def status(ctx, config, show):  # pylint: disable=unused-argument
             count += 1
             table.add_row(
                 check["name"], "[yellow]Paused[/yellow]", str(check["lastresponsetime"])
-            )
-        else:
-            # if there is another status, output it
-            count += 1
-            table.add_row(
-                check["name"], "[blue]?[/blue]", str(check["lastresponsetime"])
             )
 
     if not count == 0:

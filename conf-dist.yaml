@@ -1,2 +1,6 @@
-API_KEY: YOUR API KEY HERE
-BASE_URL: https://api.pingdom.com/api/3.1
+API_KEY: YOUR API KEY HERE                  # API key generated on my.pingdom.com
+BASE_URL: https://api.pingdom.com/api/3.1   # Base URL for api (probably doesn't need changed
+show:                                       # List of types to show.  Remove ones you don't want to see
+  - up                          
+  - down
+  - paused
