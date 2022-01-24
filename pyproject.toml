@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "pingdombot"
+name = "pingdomcli"
 version = "0.2.0"
-description = "Matrix bot for talking to pingdom"
+description = "CLI to interact with Pingdom API"
 authors = ["Alex Kelly <alex.kelly@franklin.edu>"]
 
 [tool.poetry.dependencies]
@@ -21,7 +21,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-pdcli = "pdcli.pdcli:main"
+pdcli = "pingdomcli.pdcli:main"
 
 [tool.semantic_release]
 version_variable = [
